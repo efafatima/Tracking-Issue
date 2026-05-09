@@ -1,0 +1,20 @@
+# Core Django
+Django>=5.2,<6.0
+djangorestframework>=3.15
+djangorestframework-simplejwt>=5.3
+django-cors-headers>=4.3
+psycopg[binary]>=3.1
+
+# ML / NLP
+scikit-learn>=1.4
+sentence-transformers>=2.7
+joblib>=1.3
+pandas>=2.2
+nltk>=3.8
+torch>=2.2
+
+# PDF generation
+reportlab>=4.1
+
+# Utilities
+numpy>=1.26
