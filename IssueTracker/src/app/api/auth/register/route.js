@@ -1,5 +1,6 @@
 import { fail, ok, readJson } from "@/lib/api";
 import { serverSupabase } from "@/lib/supabaseClient";
+import { validatePassword } from "@/lib/password";
 
 export async function POST(request) {
   const supabase = serverSupabase();
@@ -8,6 +9,8 @@ export async function POST(request) {
   const email = (body.email || "").trim();
   const password = body.password || "";
   if (!username || !email || !password) return fail("Username, email, and password are required", 400);
+  const passwordCheck = validatePassword(password);
+  if (!passwordCheck.valid) return fail(passwordCheck.message, 400);
 
   const { data: authData, error: authError } = await supabase.auth.admin.createUser({
     email,

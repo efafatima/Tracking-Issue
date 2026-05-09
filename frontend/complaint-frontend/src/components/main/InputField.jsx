@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 
-export default function InputField({ placeholder, type = "text", icon, variants, value, onChange, onIconClick }) {
+export default function InputField({ placeholder, type = "text", icon, variants, value, onChange, onIconClick, rightIcon, onRightIconClick }) {
   const [focused, setFocused] = useState(false);
 
   return (
@@ -21,6 +21,22 @@ export default function InputField({ placeholder, type = "text", icon, variants,
         {icon}
       </div>
 
+      {rightIcon && (
+        <button
+          type="button"
+          onClick={onRightIconClick}
+          aria-label={type === "password" ? "Show password" : "Hide password"}
+          style={{
+            position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
+            width: 30, height: 30, border: "none", borderRadius: 8,
+            background: "transparent", color: "#64748b", cursor: "pointer",
+            display: "grid", placeItems: "center", zIndex: 3, fontSize: 15,
+          }}
+        >
+          {rightIcon}
+        </button>
+      )}
+
       <motion.input
         type={type}
         placeholder={placeholder}
@@ -31,7 +47,7 @@ export default function InputField({ placeholder, type = "text", icon, variants,
         animate={{ scale: focused ? 1.02 : 1 }}
         transition={{ duration: 0.2 }}
         style={{
-          width: "100%", paddingLeft: 42, paddingRight: 16,
+          width: "100%", paddingLeft: 42, paddingRight: rightIcon ? 44 : 16,
           paddingTop: 13, paddingBottom: 13,
           fontSize: 13, color: "#1e293b",
           fontFamily: "'Plus Jakarta Sans', sans-serif",

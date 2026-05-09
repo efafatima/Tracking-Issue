@@ -4,6 +4,7 @@ import { registerUser, loginUser, getPublicDepartments } from "../services/api";
 import AuthLayout from "../components/main/AuthLayout";
 import InputField from "../components/main/InputField"
 import RoleDropdown from "../components/main/RoleDropdown"
+import { PASSWORD_RULES, validatePassword } from "../utils/password";
 
 
 
@@ -42,6 +43,11 @@ const handleSubmit = async () => {
   }
   if (formData.password !== formData.confirmPassword) {
     setErrorMsg("Passwords do not match.");
+    return;
+  }
+  const passwordCheck = validatePassword(formData.password);
+  if (!passwordCheck.valid) {
+    setErrorMsg(passwordCheck.message);
     return;
   }
   if (!formData.department) {
@@ -243,15 +249,32 @@ const handleSubmit = async () => {
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             />
-            <InputField placeholder="Password" type={showPassword ? "text" : "password"} icon={showPassword ? "👁️" : "🔒"} variants={fadeUp}
+            <InputField placeholder="Password" type={showPassword ? "text" : "password"} icon="🔒" rightIcon={showPassword ? "🙈" : "👁️"} variants={fadeUp}
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              onIconClick={() => setShowPassword(!showPassword)}
+              onRightIconClick={() => setShowPassword(!showPassword)}
             />
-            <InputField placeholder="Confirm Password" type={showConfirm ? "text" : "password"} icon={showConfirm ? "👁️" : "🔑"} variants={fadeUp}
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {PASSWORD_RULES.map((rule) => {
+                const passed = rule.test(formData.password);
+                return (
+                  <span key={rule.id} style={{
+                    fontSize: 10.5,
+                    fontWeight: 800,
+                    borderRadius: 999,
+                    padding: "3px 7px",
+                    background: passed ? "rgba(34,197,94,0.12)" : "#f1f5f9",
+                    color: passed ? "#15803d" : "#94a3b8",
+                  }}>
+                    {passed ? "✓" : "•"} {rule.label}
+                  </span>
+                );
+              })}
+            </div>
+            <InputField placeholder="Confirm Password" type={showConfirm ? "text" : "password"} icon="🔑" rightIcon={showConfirm ? "🙈" : "👁️"} variants={fadeUp}
               value={formData.confirmPassword}
               onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-              onIconClick={() => setShowConfirm(!showConfirm)}
+              onRightIconClick={() => setShowConfirm(!showConfirm)}
             />
 
 

@@ -7,6 +7,7 @@ import {
   getUsers,
   updateDepartment,
 } from "../../services/api";
+import { validatePassword } from "../../utils/password";
 
 const DEFAULT_DEPARTMENTS = [
   "Computer Science",
@@ -150,6 +151,11 @@ export default function DepartmentManagement() {
     setMessage("");
     if (!staffForm.username.trim() || !staffForm.email.trim() || !staffForm.password.trim()) {
       setError("Username, email, and password are required.");
+      return;
+    }
+    const passwordCheck = validatePassword(staffForm.password);
+    if (!passwordCheck.valid) {
+      setError(passwordCheck.message);
       return;
     }
     if (!staffForm.department) {

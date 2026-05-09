@@ -8,6 +8,8 @@ import StatCard from "@/components/StatCard";
 import ComplaintCard from "@/components/ComplaintCard";
 import ComplaintForm from "@/components/ComplaintForm";
 import DepartmentManager from "@/components/DepartmentManager";
+import PasswordField from "@/components/PasswordField";
+import { validatePassword } from "@/lib/password";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -205,20 +207,32 @@ export default function Dashboard() {
 
 function FacultyQuickCreate({ onCreated }) {
   const [form, setForm] = useState({ username: "", email: "", password: "", role: "Faculty Member", faculty_designation: "Faculty Member" });
+  const [error, setError] = useState("");
   async function submit(event) {
     event.preventDefault();
-    await api("/api/users", { method: "POST", body: JSON.stringify(form) });
-    setForm({ username: "", email: "", password: "", role: "Faculty Member", faculty_designation: "Faculty Member" });
-    onCreated();
+    setError("");
+    const passwordCheck = validatePassword(form.password);
+    if (!passwordCheck.valid) {
+      setError(passwordCheck.message);
+      return;
+    }
+    try {
+      await api("/api/users", { method: "POST", body: JSON.stringify(form) });
+      setForm({ username: "", email: "", password: "", role: "Faculty Member", faculty_designation: "Faculty Member" });
+      onCreated();
+    } catch (err) {
+      setError(err.message);
+    }
   }
   return (
     <section className="section" style={{ marginTop: 16 }}>
       <h2 style={{ marginTop: 0 }}>Faculty Management</h2>
+      {error && <div className="badge" style={{ marginBottom: 12, color: "var(--danger)", background: "#fee2e2" }}>{error}</div>}
       <form className="form" onSubmit={submit}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
           <input className="input" placeholder="Name" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
           <input className="input" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-          <input className="input" placeholder="Password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+          <PasswordField placeholder="Password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} showRules autoComplete="new-password" />
           <input className="input" placeholder="Designation" value={form.faculty_designation} onChange={(e) => setForm({ ...form, faculty_designation: e.target.value })} />
         </div>
         <button className="btn">Create Faculty Member</button>

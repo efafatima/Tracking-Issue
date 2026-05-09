@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { createStaffUser, getUsers } from "../../services/api";
+import { validatePassword } from "../../utils/password";
 
 const FACULTY_DESIGNATIONS = [
   "Fee Incharge",
@@ -69,6 +70,11 @@ export default function FacultyManagementPanel({ title = "Faculty Members" }) {
     }
     if (!form.username.trim() || !form.email.trim() || !form.password.trim()) {
       setError("Name, email and password are required.");
+      return;
+    }
+    const passwordCheck = validatePassword(form.password);
+    if (!passwordCheck.valid) {
+      setError(passwordCheck.message);
       return;
     }
 

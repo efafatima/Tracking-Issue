@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/clientApi";
+import PasswordField from "@/components/PasswordField";
+import { validatePassword } from "@/lib/password";
 
 export default function DepartmentManager() {
   const [departments, setDepartments] = useState([]);
@@ -35,6 +37,11 @@ export default function DepartmentManager() {
     setError("");
     if (["HOD", "DSA", "Faculty Member"].includes(staff.role) && !staff.department_id) {
       setError("Please select a department for HOD, DSA, or Faculty Member.");
+      return;
+    }
+    const passwordCheck = validatePassword(staff.password);
+    if (!passwordCheck.valid) {
+      setError(passwordCheck.message);
       return;
     }
     try {
@@ -71,7 +78,7 @@ export default function DepartmentManager() {
             <strong>Create Staff</strong>
             <input className="input" placeholder="Username" value={staff.username} onChange={(e) => setStaff({ ...staff, username: e.target.value })} />
             <input className="input" placeholder="Email" value={staff.email} onChange={(e) => setStaff({ ...staff, email: e.target.value })} />
-            <input className="input" placeholder="Password" type="password" value={staff.password} onChange={(e) => setStaff({ ...staff, password: e.target.value })} />
+            <PasswordField placeholder="Password" value={staff.password} onChange={(e) => setStaff({ ...staff, password: e.target.value })} showRules autoComplete="new-password" />
             <select className="input" value={staff.role} onChange={(e) => setStaff({ ...staff, role: e.target.value })}>
               {["HOD", "DSA", "Faculty Member", "Supervisor"].map((role) => <option key={role}>{role}</option>)}
             </select>

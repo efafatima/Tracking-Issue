@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/clientApi";
+import PasswordField from "@/components/PasswordField";
+import { validatePassword } from "@/lib/password";
 
 export default function Register() {
   const router = useRouter();
@@ -19,6 +21,11 @@ export default function Register() {
   async function submit(event) {
     event.preventDefault();
     setError("");
+    const passwordCheck = validatePassword(form.password);
+    if (!passwordCheck.valid) {
+      setError(passwordCheck.message);
+      return;
+    }
     setLoading(true);
     const response = await fetch("/api/auth/register", {
       method: "POST",
@@ -52,7 +59,7 @@ export default function Register() {
             {error && <div className="badge" style={{ color: "var(--danger)", background: "#fee2e2" }}>{error}</div>}
             <input className="input" placeholder="Username" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
             <input className="input" type="email" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-            <input className="input" type="password" placeholder="Password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+            <PasswordField placeholder="Password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} showRules autoComplete="new-password" />
             <select className="input" value={form.department_id} onChange={(e) => setForm({ ...form, department_id: e.target.value })}>
               <option value="">Select Department</option>
               {departments.map((department) => <option key={department.id} value={department.id}>{department.name}</option>)}

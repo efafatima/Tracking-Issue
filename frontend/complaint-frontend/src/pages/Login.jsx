@@ -231,9 +231,10 @@ export default function LoginPage() {
             <InputField
   placeholder="Password"
   type={showPassword ? "text" : "password"}
-  icon={showPassword ? "👁️" : "🔒"}
+  icon="🔒"
+  rightIcon={showPassword ? "🙈" : "👁️"}
   onChange={e => setPassword(e.target.value)}
-  onIconClick={() => setShowPassword(!showPassword)}
+  onRightIconClick={() => setShowPassword(!showPassword)}
 />
 
             

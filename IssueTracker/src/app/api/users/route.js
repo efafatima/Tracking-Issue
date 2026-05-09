@@ -1,5 +1,6 @@
 import { currentUser } from "@/lib/auth";
 import { fail, ok, readJson } from "@/lib/api";
+import { validatePassword } from "@/lib/password";
 
 export async function GET(request) {
   const ctx = await currentUser(request);
@@ -30,6 +31,8 @@ export async function POST(request) {
   const role = body.role || "Faculty Member";
   const departmentId = ctx.profile.role === "Supervisor" ? body.department_id || body.department : ctx.profile.department_id;
   if (!username || !email || !password) return fail("Username, email, and password are required", 400);
+  const passwordCheck = validatePassword(password);
+  if (!passwordCheck.valid) return fail(passwordCheck.message, 400);
   if (["HOD", "DSA", "Faculty Member"].includes(role) && !departmentId) {
     return fail("Please select a department for HOD, DSA, or Faculty Member.", 400);
   }

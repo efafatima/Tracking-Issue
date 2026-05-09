@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { supabase } from "@/lib/clientApi";
+import PasswordField from "@/components/PasswordField";
 
 export default function Login() {
   const router = useRouter();
@@ -39,7 +40,7 @@ export default function Login() {
             <h2 style={{ margin: 0 }}>Login</h2>
             {error && <div className="badge" style={{ color: "var(--danger)", background: "#fee2e2" }}>{error}</div>}
             <input className="input" type="email" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-            <input className="input" type="password" placeholder="Password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+            <PasswordField placeholder="Password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} autoComplete="current-password" />
             <button className="btn" disabled={loading}>{loading ? "Signing in..." : "Login"}</button>
             <Link className="muted" href="/register">Student? Create an account</Link>
           </form>
