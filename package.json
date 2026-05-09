@@ -1,0 +1,13 @@
+{
+  "name": "tracking-issue",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "IssueTracker"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace IssueTracker",
+    "dev": "npm run dev --workspace IssueTracker",
+    "start": "npm run start --workspace IssueTracker"
+  }
+}
