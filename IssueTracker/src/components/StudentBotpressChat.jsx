@@ -5,6 +5,7 @@ import { useEffect } from "react";
 const botId = process.env.NEXT_PUBLIC_BOTPRESS_BOT_ID;
 const clientId = process.env.NEXT_PUBLIC_BOTPRESS_CLIENT_ID;
 const scriptUrl = process.env.NEXT_PUBLIC_BOTPRESS_SCRIPT_URL || "https://cdn.botpress.cloud/webchat/v3.6/inject.js";
+const configScriptUrl = process.env.NEXT_PUBLIC_BOTPRESS_CONFIG_URL;
 
 const BOT_CONTEXT = `
 You are IssueTracker Student Help Assistant for a university complaint system.
@@ -23,8 +24,11 @@ Keep answers short, polite, and practical.
 
 export default function StudentBotpressChat({ profile }) {
   useEffect(() => {
-    if (!botId || !clientId) {
-      console.info("Botpress disabled: set NEXT_PUBLIC_BOTPRESS_BOT_ID and NEXT_PUBLIC_BOTPRESS_CLIENT_ID.");
+    const hasConfigEmbed = Boolean(configScriptUrl);
+    const hasManualConfig = Boolean(botId && clientId);
+
+    if (!hasConfigEmbed && !hasManualConfig) {
+      console.info("Botpress disabled: set NEXT_PUBLIC_BOTPRESS_CONFIG_URL or NEXT_PUBLIC_BOTPRESS_BOT_ID/NEXT_PUBLIC_BOTPRESS_CLIENT_ID.");
       return;
     }
 
@@ -33,44 +37,42 @@ export default function StudentBotpressChat({ profile }) {
       style.id = "botpress-responsive-styles";
       style.textContent = `
         .bpFab, #bp-web-widget-container .bpw-floating-button {
-          right: auto !important;
-          left: 18px !important;
-          bottom: 92px !important;
+          right: 18px !important;
+          bottom: 18px !important;
           width: 54px !important;
           height: 54px !important;
           border-radius: 999px !important;
           box-shadow: 0 16px 34px rgba(37,99,235,.26) !important;
-          z-index: 80 !important;
+          z-index: 86 !important;
         }
         .bpWebchat, #bp-web-widget-container .bpw-layout {
-          right: auto !important;
-          left: 18px !important;
-          bottom: 154px !important;
+          right: 18px !important;
+          bottom: 86px !important;
           max-width: min(390px, calc(100vw - 24px)) !important;
-          max-height: min(680px, calc(100svh - 190px)) !important;
+          max-height: min(680px, calc(100svh - 110px)) !important;
           border-radius: 8px !important;
         }
         @media (max-width: 560px) {
           .bpFab, #bp-web-widget-container .bpw-floating-button {
-            left: 12px !important;
-            bottom: 82px !important;
+            right: 12px !important;
+            bottom: 12px !important;
             width: 48px !important;
             height: 48px !important;
           }
           .bpWebchat, #bp-web-widget-container .bpw-layout {
             left: 10px !important;
             right: 10px !important;
-            bottom: 138px !important;
+            bottom: 72px !important;
             width: calc(100vw - 20px) !important;
-            max-height: calc(100svh - 156px) !important;
+            max-height: calc(100svh - 92px) !important;
           }
         }
       `;
       document.head.appendChild(style);
     }
 
-    function initBotpress() {
-      if (!window.botpress?.init || window.__issueTrackerBotpressReady) return;
+    function initManualBotpress() {
+      if (!window.botpress?.init || window.__issueTrackerBotpressReady || !hasManualConfig) return;
 
       window.botpress.init({
         botId,
@@ -95,14 +97,30 @@ export default function StudentBotpressChat({ profile }) {
       });
     }
 
+    function loadConfigScript() {
+      if (!hasConfigEmbed) {
+        initManualBotpress();
+        return;
+      }
+      if (document.getElementById("botpress-config-script")) return;
+
+      const configScript = document.createElement("script");
+      configScript.id = "botpress-config-script";
+      configScript.src = configScriptUrl;
+      configScript.defer = true;
+      configScript.onerror = () => console.error("Botpress config script failed to load.");
+      document.body.appendChild(configScript);
+      window.__issueTrackerBotpressReady = true;
+    }
+
     if (window.botpress?.init) {
-      initBotpress();
+      loadConfigScript();
       return;
     }
 
     const existing = document.getElementById("botpress-webchat-script");
     if (existing) {
-      existing.addEventListener("load", initBotpress, { once: true });
+      existing.addEventListener("load", loadConfigScript, { once: true });
       return;
     }
 
@@ -110,7 +128,7 @@ export default function StudentBotpressChat({ profile }) {
     script.id = "botpress-webchat-script";
     script.src = scriptUrl;
     script.async = true;
-    script.onload = initBotpress;
+    script.onload = loadConfigScript;
     script.onerror = () => console.error("Botpress webchat script failed to load.");
     document.body.appendChild(script);
   }, [profile]);
