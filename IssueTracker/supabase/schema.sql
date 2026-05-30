@@ -69,9 +69,13 @@ create table if not exists complaints (
   rating integer check (rating between 1 and 5),
   feedback text,
   escalated boolean not null default false,
+  edited_once boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table complaints
+  add column if not exists edited_once boolean not null default false;
 
 create table if not exists complaint_attachments (
   id bigint generated always as identity primary key,

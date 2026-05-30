@@ -6,9 +6,21 @@ import StatusBadge from "./StatusBadge";
 import { STATUS_COLORS } from "@/lib/designTokens";
 import { api, supabase } from "@/lib/clientApi";
 
-export default function ComplaintCard({ complaint, profile, teachers = [], onAction, onComment }) {
+const editableCategories = ["Academic", "Administrative", "Facilities", "Behavior-related", "Other"];
+const editablePriorities = ["Low", "Medium", "High", "Urgent"];
+
+export default function ComplaintCard({ complaint, profile, teachers = [], onAction, onComment, onEdited }) {
   const [reviewOpen, setReviewOpen] = useState(false);
   const [solveOpen, setSolveOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    title: complaint.title || "",
+    description: complaint.description || "",
+    category: complaint.category || "Other",
+    priority: complaint.priority || "Medium"
+  });
+  const [editError, setEditError] = useState("");
+  const [editing, setEditing] = useState(false);
   const [studentEmailVisible, setStudentEmailVisible] = useState(false);
   const [evidenceFile, setEvidenceFile] = useState(null);
   const [solving, setSolving] = useState(false);
@@ -19,6 +31,7 @@ export default function ComplaintCard({ complaint, profile, teachers = [], onAct
   const canFinalize = ["DSA", "Supervisor"].includes(profile.role) && complaint.status === "Resolved";
   const canRate = profile.role === "Student" && ["Resolved", "Closed"].includes(complaint.status) && !complaint.rating;
   const compactReviewCard = ["HOD", "DSA"].includes(profile.role);
+  const canStudentEdit = profile.role === "Student" && complaint.status === "Submitted" && !complaint.edited_once;
 
   const priorityColorMap = {
     Low: { color: "#1D9E75", bg: "#e8f5f0" },
@@ -67,6 +80,24 @@ export default function ComplaintCard({ complaint, profile, teachers = [], onAct
     }
   }
 
+  async function saveStudentEdit(event) {
+    event.preventDefault();
+    setEditError("");
+    setEditing(true);
+    try {
+      await api(`/api/complaints/${complaint.id}`, {
+        method: "PATCH",
+        body: JSON.stringify(editForm)
+      });
+      setEditOpen(false);
+      await onEdited?.();
+    } catch (err) {
+      setEditError(err.message);
+    } finally {
+      setEditing(false);
+    }
+  }
+
   return (
     <>
       <article className="complaint-card" style={{ borderLeft: `4px solid ${STATUS_COLORS[complaint.status]?.color || "#0F2342"}` }}>
@@ -78,6 +109,7 @@ export default function ComplaintCard({ complaint, profile, teachers = [], onAct
             </div>
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            {canStudentEdit && <button className="btn secondary" type="button" onClick={() => setEditOpen(true)}>Edit</button>}
             <StatusBadge status={complaint.status} />
             <span className="badge" style={{ background: priorityConfig.bg, color: priorityConfig.color }}>
               {complaint.priority}
@@ -127,6 +159,40 @@ export default function ComplaintCard({ complaint, profile, teachers = [], onAct
           </form>
         )}
       </article>
+
+      {editOpen && (
+        <div className="modal-backdrop" role="presentation" onClick={() => setEditOpen(false)}>
+          <section className="modal-panel" role="dialog" aria-modal="true" aria-label="Edit complaint" onClick={(event) => event.stopPropagation()}>
+            <div className="header-row">
+              <div>
+                <h2 style={{ margin: 0, color: "#0F172A" }}>Edit Complaint</h2>
+                <p className="muted" style={{ margin: "6px 0 0" }}>You can edit this complaint one time only.</p>
+              </div>
+              <button className="icon-button" type="button" aria-label="Close edit complaint" onClick={() => setEditOpen(false)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            {editError && <div className="badge" style={{ marginTop: 14, color: "var(--danger)", background: "#fee2e2" }}>{editError}</div>}
+
+            <form className="form" style={{ marginTop: 18 }} onSubmit={saveStudentEdit}>
+              <input className="input" placeholder="Complaint title" value={editForm.title} onChange={(event) => setEditForm({ ...editForm, title: event.target.value })} />
+              <textarea className="input" placeholder="Description" value={editForm.description} onChange={(event) => setEditForm({ ...editForm, description: event.target.value })} />
+              <div className="responsive-two">
+                <select className="input" value={editForm.category} onChange={(event) => setEditForm({ ...editForm, category: event.target.value })}>
+                  {editableCategories.map((category) => <option key={category}>{category}</option>)}
+                </select>
+                <select className="input" value={editForm.priority} onChange={(event) => setEditForm({ ...editForm, priority: event.target.value })}>
+                  {editablePriorities.map((priority) => <option key={priority}>{priority}</option>)}
+                </select>
+              </div>
+              <button className="btn" type="submit" disabled={editing}>
+                {editing ? "Saving..." : "Save Complaint"}
+              </button>
+            </form>
+          </section>
+        </div>
+      )}
 
       {solveOpen && (
         <div className="modal-backdrop" role="presentation" onClick={() => setSolveOpen(false)}>

@@ -39,7 +39,18 @@ export async function GET(request) {
   }
   const { data, error } = await query;
   if (error) return fail(error.message, 500);
-  return ok(data);
+  const rows = data || [];
+  const ids = rows.map((complaint) => complaint.id);
+  let editedIds = new Set();
+  if (ids.length) {
+    const { data: editLogs } = await ctx.supabase
+      .from("activity_logs")
+      .select("complaint_id")
+      .in("complaint_id", ids)
+      .eq("action", "Complaint edited by student");
+    editedIds = new Set((editLogs || []).map((log) => log.complaint_id));
+  }
+  return ok(rows.map((complaint) => ({ ...complaint, edited_once: Boolean(complaint.edited_once || editedIds.has(complaint.id)) })));
 }
 
 export async function POST(request) {

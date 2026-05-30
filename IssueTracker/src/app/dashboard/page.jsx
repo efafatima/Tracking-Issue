@@ -346,6 +346,7 @@ export default function Dashboard() {
                       teachers={teachers}
                       onAction={action}
                       onComment={comment}
+                      onEdited={load}
                     />
                   ))}
                 </div>
@@ -375,6 +376,7 @@ export default function Dashboard() {
                   teachers={teachers}
                   onAction={action}
                   onComment={comment}
+                  onEdited={load}
                 />
               ))}
             </div>
