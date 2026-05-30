@@ -11,7 +11,6 @@ import {
   CircleDashed,
   Eye,
   FileText,
-  Filter,
   LayoutDashboard,
   LogOut,
   Pencil,
@@ -308,7 +307,6 @@ export default function Dashboard() {
             <h1 style={{ color: "#0F172A" }}>Welcome, {profile.username}</h1>
             <p className="muted">Monitor complaint performance and routing in real time.</p>
           </div>
-          <button className="btn" onClick={load} style={{ background: roleColor?.primary }}><Filter size={16} /> Refresh</button>
         </div>
 
         {error && <div className="badge" style={{ marginTop: 14, color: "var(--danger)", background: "#fee2e2" }}>⚠️ {error}</div>}
