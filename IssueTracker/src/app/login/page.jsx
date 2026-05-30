@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -16,7 +17,10 @@ export default function Login() {
     event.preventDefault();
     setError("");
     setLoading(true);
-    const { error: loginError } = await supabase.auth.signInWithPassword(form);
+    const { error: loginError } = await supabase.auth.signInWithPassword({
+      email: form.email.trim(),
+      password: form.password.trim()
+    });
     setLoading(false);
     if (loginError) {
       setError(loginError.message);
@@ -26,24 +30,45 @@ export default function Login() {
   }
 
   return (
-    <main className="shell">
-      <div className="container">
-        <nav className="topbar">
-          <Link className="brand" href="/"><span className="brand-mark">IT</span> IssueTracker</Link>
-        </nav>
-        <div className="hero auth-hero">
-          <div>
-            <h1>Welcome back</h1>
-            <p>Login to manage complaints, assignments, department staff, reports, and notifications.</p>
+    <main className="shell auth-shell">
+      <div className="auth-page">
+        <div className="auth-card">
+          <div className="auth-card-brand">
+            <div className="auth-logo-shell">
+              <Image src="/bzu-logo.png" alt="BZU Logo" width={70} height={70} />
+            </div>
+            <div className="auth-title-row">
+              <div className="mini-label">University complaint portal</div>
+              <h1>Login to BZU System</h1>
+              <p className="auth-description">Access your dashboard securely and track complaints in a clean, trusted interface.</p>
+            </div>
           </div>
-          <form className="panel auth-card form" onSubmit={submit}>
-            <h2 style={{ margin: 0 }}>Login</h2>
-            {error && <div className="badge" style={{ color: "var(--danger)", background: "#fee2e2" }}>{error}</div>}
-            <input className="input" type="email" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-            <PasswordField placeholder="Password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} autoComplete="current-password" />
-            <button className="btn" disabled={loading}>{loading ? "Signing in..." : "Login"}</button>
-            <Link className="muted" href="/register">Student? Create an account</Link>
+
+          <form className="form" onSubmit={submit}>
+            {error && <div className="alert error">⚠️ {error}</div>}
+            <input
+              className="input"
+              type="email"
+              placeholder="Email address"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              required
+            />
+            <PasswordField
+              placeholder="Password"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              autoComplete="current-password"
+            />
+            <button className="btn" disabled={loading}>
+              {loading ? "Signing in..." : "Login"}
+            </button>
           </form>
+
+          <div className="auth-card-footer">
+            <span>Don't have an account?</span>
+            <Link href="/register">Create one</Link>
+          </div>
         </div>
       </div>
     </main>

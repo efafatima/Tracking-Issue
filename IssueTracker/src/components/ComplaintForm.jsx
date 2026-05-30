@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { Paperclip, Send, Sparkles } from "lucide-react";
 import { api, supabase } from "@/lib/clientApi";
+import AIPanel from "./AIPanel";
 
 const categories = ["Academic", "Administrative", "Facilities", "Behavior-related", "Other"];
 const priorities = ["Low", "Medium", "High", "Urgent"];
@@ -45,20 +47,24 @@ export default function ComplaintForm({ onCreated }) {
     <section className="section">
       <div className="header-row">
         <div>
-          <h2 style={{ margin: 0 }}>Submit Complaint</h2>
-          <p className="muted" style={{ marginTop: 4 }}>AI-assisted category, severity, and duplicate check.</p>
+          <h2 style={{ margin: 0, color: "#0F172A" }}>Submit Complaint</h2>
+          <p className="muted" style={{ marginTop: 4 }}>Get AI suggestions for category, severity, and check for duplicates.</p>
         </div>
-        <button className="btn secondary" type="button" onClick={suggest}>Suggest</button>
+        <button className="btn secondary" type="button" onClick={suggest}><Sparkles size={16} /> Get Suggestions</button>
       </div>
-      {suggestion && (
-        <div className="complaint-card" style={{ marginTop: 12 }}>
-          Suggested: <strong>{suggestion.suggested_category}</strong> / <strong>{suggestion.suggested_priority}</strong>
-          <span className="muted"> · {(suggestion.similarity_score * 100).toFixed(1)}% similar</span>
-        </div>
-      )}
+      
       <form className="form" style={{ marginTop: 14 }} onSubmit={submit}>
         <input className="input" placeholder="Complaint title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-        <textarea className="input" placeholder="Describe the issue" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+        <textarea className="input" placeholder="Describe the issue in detail..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+        
+        {suggestion && (
+          <AIPanel 
+            category={suggestion.suggested_category}
+            severity={suggestion.suggested_priority}
+            suggestions={suggestion.similar_issues ? suggestion.similar_issues.slice(0, 3) : []}
+          />
+        )}
+        
         <div className="responsive-two">
           <select className="input" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
             {categories.map((item) => <option key={item}>{item}</option>)}
@@ -67,9 +73,21 @@ export default function ComplaintForm({ onCreated }) {
             {priorities.map((item) => <option key={item}>{item}</option>)}
           </select>
         </div>
-        <label className="muted"><input type="checkbox" checked={form.is_anonymous} onChange={(e) => setForm({ ...form, is_anonymous: e.target.checked })} /> Submit anonymously</label>
-        <input className="input" type="file" multiple onChange={(e) => setFiles([...e.target.files])} />
-        <button className="btn" disabled={busy}>{busy ? "Submitting..." : "Submit Complaint"}</button>
+        
+        <label className="muted" style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+          <input type="checkbox" checked={form.is_anonymous} onChange={(e) => setForm({ ...form, is_anonymous: e.target.checked })} />
+          <span>Submit anonymously</span>
+        </label>
+        
+        <label className="input" style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
+          <Paperclip size={16} />
+          <span className="muted">{files.length ? `${files.length} attachment${files.length !== 1 ? 's' : ''} selected` : "Add attachments"}</span>
+          <input style={{ display: "none" }} type="file" multiple onChange={(e) => setFiles([...e.target.files])} />
+        </label>
+        
+        <button className="btn" disabled={busy} style={{ background: "var(--primary)", width: "100%" }}>
+          <Send size={16} /> {busy ? "Submitting..." : "Submit Complaint"}
+        </button>
       </form>
     </section>
   );

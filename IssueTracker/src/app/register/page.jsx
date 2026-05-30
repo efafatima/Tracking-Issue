@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -44,29 +45,64 @@ export default function Register() {
   }
 
   return (
-    <main className="shell">
-      <div className="container">
-        <nav className="topbar">
-          <Link className="brand" href="/"><span className="brand-mark">IT</span> IssueTracker</Link>
-        </nav>
-        <div className="hero auth-hero">
-          <div>
-            <h1>Student signup</h1>
-            <p>Create an account and submit complaints with AI-assisted category, priority, and similarity checks.</p>
+    <main className="shell auth-shell">
+      <div className="auth-page">
+        <div className="auth-card">
+          <div className="auth-card-brand">
+            <div className="auth-logo-shell">
+              <Image src="/bzu-logo.png" alt="BZU Logo" width={70} height={70} />
+            </div>
+            <div className="auth-title-row">
+              <div className="mini-label">Student signup</div>
+              <h1>Create your account</h1>
+              <p className="auth-description">Register now to submit and manage complaints with secure campus workflows.</p>
+            </div>
           </div>
-          <form className="panel auth-card form" onSubmit={submit}>
-            <h2 style={{ margin: 0 }}>Create Account</h2>
-            {error && <div className="badge" style={{ color: "var(--danger)", background: "#fee2e2" }}>{error}</div>}
-            <input className="input" placeholder="Username" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
-            <input className="input" type="email" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-            <PasswordField placeholder="Password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} showRules autoComplete="new-password" />
-            <select className="input" value={form.department_id} onChange={(e) => setForm({ ...form, department_id: e.target.value })}>
-              <option value="">Select Department</option>
-              {departments.map((department) => <option key={department.id} value={department.id}>{department.name}</option>)}
+
+          <form className="form" onSubmit={submit}>
+            {error && <div className="alert error">⚠️ {error}</div>}
+            <input
+              className="input"
+              placeholder="Full name"
+              value={form.username}
+              onChange={(e) => setForm({ ...form, username: e.target.value })}
+              required
+            />
+            <input
+              className="input"
+              type="email"
+              placeholder="Email address"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              required
+            />
+            <PasswordField
+              placeholder="Create password"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              showRules
+              autoComplete="new-password"
+            />
+            <select
+              className="input"
+              value={form.department_id}
+              onChange={(e) => setForm({ ...form, department_id: e.target.value })}
+              required
+            >
+              <option value="">Select your department</option>
+              {departments.map((department) => (
+                <option key={department.id} value={department.id}>{department.name}</option>
+              ))}
             </select>
-            <button className="btn" disabled={loading}>{loading ? "Creating..." : "Create Student Account"}</button>
-            <Link className="muted" href="/login">Already have an account?</Link>
+            <button className="btn" disabled={loading}>
+              {loading ? "Creating account..." : "Create account"}
+            </button>
           </form>
+
+          <div className="auth-card-footer">
+            <span>Already have an account?</span>
+            <Link href="/login">Login here</Link>
+          </div>
         </div>
       </div>
     </main>
