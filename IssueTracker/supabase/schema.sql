@@ -166,8 +166,8 @@ from (values
   ('Academic'::complaint_category, 'HOD'::routed_role, null::uuid),
   ('Behavior-related'::complaint_category, 'HOD'::routed_role, null::uuid),
   ('Administrative'::complaint_category, 'DSA'::routed_role, null::uuid),
-  ('Facilities'::complaint_category, 'HOD'::routed_role, null::uuid),
-  ('Other'::complaint_category, 'HOD'::routed_role, null::uuid)
+  ('Facilities'::complaint_category, 'DSA'::routed_role, null::uuid),
+  ('Other'::complaint_category, 'DSA'::routed_role, null::uuid)
 ) as seed(category, default_role, department_id)
 where not exists (
   select 1 from category_routes existing

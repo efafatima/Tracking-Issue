@@ -383,6 +383,32 @@ button:disabled {
   cursor: pointer;
 }
 
+.complaint-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin-right: auto;
+}
+
+.complaint-search-input {
+  width: min(280px, 42vw);
+  min-width: 0;
+  height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  padding: 0 14px;
+  background: #ffffff;
+  color: var(--ink);
+  outline: 0;
+  box-shadow: 0 12px 24px rgba(15, 35, 66, 0.14);
+}
+
+.complaint-search-input:focus {
+  border-color: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2), 0 12px 24px rgba(15, 35, 66, 0.14);
+}
+
 .header-row,
 .toolbar {
   display: flex;
@@ -1648,6 +1674,14 @@ textarea.input {
     justify-content: space-between;
     min-height: 50px;
     padding: 6px 8px;
+  }
+
+  .complaint-search {
+    flex: 1;
+  }
+
+  .complaint-search-input {
+    width: 100%;
   }
 
   .hero h1 {

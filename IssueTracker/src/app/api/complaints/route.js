@@ -13,18 +13,8 @@ const complaintSelect = `
   attachments:complaint_attachments(*)
 `;
 
-async function routeFor(supabase, category, departmentId) {
-  const scoped = departmentId
-    ? await supabase.from("category_routes").select("default_role").eq("category", category).eq("department_id", departmentId).maybeSingle()
-    : { data: null };
-  if (scoped.data?.default_role) return scoped.data.default_role;
-  const { data } = await supabase
-    .from("category_routes")
-    .select("default_role")
-    .eq("category", category)
-    .is("department_id", null)
-    .maybeSingle();
-  return data?.default_role || ROUTE_DEFAULTS[category] || "HOD";
+async function routeFor(category) {
+  return ROUTE_DEFAULTS[category] || "HOD";
 }
 
 export async function GET(request) {
@@ -65,7 +55,7 @@ export async function POST(request) {
 
   const category = body.category || predictCategory(description);
   const priority = body.priority || severity(description);
-  const routedRole = await routeFor(ctx.supabase, category, ctx.profile.department_id);
+  const routedRole = await routeFor(category);
   const { data: existing } = await ctx.supabase.from("complaints").select("description");
   const suggestedCategory = predictCategory(description);
   const suggestedPriority = severity(description);

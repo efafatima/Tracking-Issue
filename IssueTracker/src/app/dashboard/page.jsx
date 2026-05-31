@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Activity,
   BarChart3,
@@ -15,7 +15,6 @@ import {
   LogOut,
   Pencil,
   Search,
-  ShieldCheck,
   UserPlus,
   X
 } from "lucide-react";
@@ -50,7 +49,10 @@ export default function Dashboard() {
   const [profileForm, setProfileForm] = useState({ username: "" });
   const [profileError, setProfileError] = useState("");
   const [avatarDataUrl, setAvatarDataUrl] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const searchInputRef = useRef(null);
 
   async function load() {
     setError("");
@@ -133,11 +135,44 @@ export default function Dashboard() {
       : pathname.endsWith("/departments")
         ? "departments"
         : "dashboard";
+  const filteredComplaints = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+    if (!query) return complaints;
+
+    return complaints.filter((complaint) => {
+      const searchableText = [
+        complaint.id,
+        complaint.title,
+        complaint.description,
+        complaint.category,
+        complaint.priority,
+        complaint.status,
+        complaint.routed_to_role,
+        complaint.department?.name,
+        complaint.student?.username,
+        complaint.student?.email,
+        complaint.assigned_teacher?.username,
+        complaint.assigned_teacher?.email
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return searchableText.includes(query);
+    });
+  }, [complaints, searchTerm]);
+
   useEffect(() => {
     if (["Supervisor", "Faculty Member"].includes(profile?.role) && activePage === "complaints") {
       router.replace("/dashboard");
     }
   }, [activePage, profile, router]);
+
+  useEffect(() => {
+    if (searchOpen && activePage === "complaints") {
+      searchInputRef.current?.focus();
+    }
+  }, [activePage, searchOpen]);
 
   const navItems = [
     ["dashboard", "/dashboard", LayoutDashboard, "Dashboard"],
@@ -230,7 +265,6 @@ export default function Dashboard() {
         </nav>
         
         <div className="grid" style={{ marginTop: 24 }}>
-          <span className="badge"><ShieldCheck size={14} /> Scoped Access</span>
           <span className="badge" style={{ background: "rgba(163, 45, 45, 0.12)", color: "var(--danger)" }}><Bell size={14} /> {notifications.length} Notifications</span>
           {profile.role === "Supervisor" && <span className="badge" style={{ background: "rgba(83, 74, 183, 0.14)", color: "var(--supervisor-purple)" }}><Activity size={14} /> {activity.length} Logs</span>}
         </div>
@@ -239,7 +273,30 @@ export default function Dashboard() {
       <section className="main">
         <div className="dashboard-topbar">
           {activePage === "complaints" && (
-            <button className="icon-button" aria-label="Search complaints" style={{ background: roleColor?.primary }}><Search size={18} /></button>
+            <div className={`complaint-search ${searchOpen || searchTerm ? "open" : ""}`}>
+              <button
+                className="icon-button"
+                type="button"
+                aria-label="Search complaints"
+                style={{ background: roleColor?.primary }}
+                onClick={() => setSearchOpen(true)}
+              >
+                <Search size={18} />
+              </button>
+              {(searchOpen || searchTerm) && (
+                <input
+                  ref={searchInputRef}
+                  className="complaint-search-input"
+                  type="search"
+                  placeholder="Search complaints..."
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  onBlur={() => {
+                    if (!searchTerm.trim()) setSearchOpen(false);
+                  }}
+                />
+              )}
+            </div>
           )}
           <div className="profile-menu">
             <button
@@ -353,13 +410,19 @@ export default function Dashboard() {
             <div className="header-row">
               <div>
                 <h2 style={{ margin: 0, color: "#0F172A" }}>Complaints</h2>
-                <p className="muted" style={{ marginTop: 4 }}>{complaints.length} records in your scope</p>
+                <p className="muted" style={{ marginTop: 4 }}>
+                  {searchTerm.trim()
+                    ? `${filteredComplaints.length} of ${complaints.length} matching records`
+                    : `${complaints.length} records in your scope`}
+                </p>
               </div>
             </div>
             <div className="card-list" style={{ marginTop: 12 }}>
-              {complaints.length === 0 ? (
-                <div className="complaint-card muted">No complaints found.</div>
-              ) : complaints.map((complaint) => (
+              {filteredComplaints.length === 0 ? (
+                <div className="complaint-card muted">
+                  {searchTerm.trim() ? "No complaints match your search." : "No complaints found."}
+                </div>
+              ) : filteredComplaints.map((complaint) => (
                 <ComplaintCard
                   key={complaint.id}
                   complaint={complaint}

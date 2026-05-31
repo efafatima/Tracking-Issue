@@ -2,8 +2,8 @@ export const ROUTE_DEFAULTS = {
   Academic: "HOD",
   "Behavior-related": "HOD",
   Administrative: "DSA",
-  Facilities: "HOD",
-  Other: "HOD"
+  Facilities: "DSA",
+  Other: "DSA"
 };
 
 export function canViewComplaint(profile, complaint) {
