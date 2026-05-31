@@ -126,6 +126,17 @@ export default function Dashboard() {
       ["Rejected", stats.rejected, "var(--danger)", CircleDashed, "Returned cases"]
     ];
   }, [profile, stats]);
+  const roleSummary = useMemo(() => {
+    if (!profile) return "";
+    const summaries = {
+      Student: "Submit, track, edit eligible complaints, and share feedback once your case is resolved.",
+      "Faculty Member": "Review assigned complaints, contact students when needed, upload evidence, and mark completed work as resolved.",
+      HOD: "Review department academic and behavior-related complaints, accept or reject submissions, and assign accepted cases to faculty.",
+      DSA: "Review administrative, facilities, and other routed complaints, assign accepted cases to faculty, and close resolved matters.",
+      Supervisor: "Oversee complaint activity, department performance, staff workflows, assignments, and final resolution progress."
+    };
+    return summaries[profile.role] || "Manage your assigned complaint workflow from this dashboard.";
+  }, [profile]);
 
   const roleColor = profile ? ROLE_COLORS[profile.role] : null;
   const activePage = pathname.endsWith("/analytics")
@@ -355,7 +366,7 @@ export default function Dashboard() {
         <div className="header-row">
           <div className="page-title">
             <h1 style={{ color: "#0F172A" }}>Welcome, {profile.username}</h1>
-            <p className="muted">Monitor complaint performance and routing in real time.</p>
+            <p className="muted">{roleSummary}</p>
           </div>
         </div>
 
