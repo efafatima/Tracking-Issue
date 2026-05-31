@@ -533,7 +533,7 @@ export default function Dashboard() {
       </section>
       
       <VoiceRobot profile={profile} complaints={complaints} notifications={notifications} lastCreatedComplaint={lastCreatedComplaint} />
-      {profile.role === "Student" && <StudentBotpressChat profile={profile} />}
+      <StudentBotpressChat profile={profile} />
       {selectedComplaint && (
         <ComplaintDetailsModal
           complaint={selectedComplaint}

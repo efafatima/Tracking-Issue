@@ -22,8 +22,34 @@ If a student asks for live complaint data, ask them to check Dashboard > Complai
 Keep answers short, polite, and practical.
 `;
 
+function removeBotpressWidget() {
+  if (typeof document === "undefined") return;
+
+  window.botpress?.close?.();
+
+  [
+    "#botpress-webchat-script",
+    "#botpress-config-script",
+    "#botpress-webchat",
+    "#bp-web-widget-container",
+    ".bpFab",
+    ".bpWebchat",
+    ".bp-widget-web",
+    "iframe[src*='botpress']"
+  ].forEach((selector) => {
+    document.querySelectorAll(selector).forEach((element) => element.remove());
+  });
+
+  window.__issueTrackerBotpressReady = false;
+}
+
 export default function StudentBotpressChat({ profile }) {
   useEffect(() => {
+    if (profile?.role !== "Student") {
+      removeBotpressWidget();
+      return;
+    }
+
     const hasConfigEmbed = Boolean(configScriptUrl);
     const hasManualConfig = Boolean(botId && clientId);
 
@@ -206,8 +232,11 @@ export default function StudentBotpressChat({ profile }) {
     script.onerror = () => console.error("Botpress webchat script failed to load.");
     document.body.appendChild(script);
     const draggableTimer = window.setInterval(makeBotpressFabDraggable, 1200);
-    return () => window.clearInterval(draggableTimer);
-  }, [profile]);
+    return () => {
+      window.clearInterval(draggableTimer);
+      removeBotpressWidget();
+    };
+  }, [profile?.role, profile?.username]);
 
   return null;
 }
