@@ -1,13 +1,28 @@
 {
-  "name": "tracking-issue",
+  "name": "issue-tracker",
   "version": "1.0.0",
   "private": true,
-  "workspaces": [
-    "IssueTracker"
-  ],
+  "type": "module",
   "scripts": {
-    "build": "npm run build --workspace IssueTracker",
-    "dev": "npm run dev --workspace IssueTracker",
-    "start": "npm run start --workspace IssueTracker"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.5.2",
+    "@supabase/supabase-js": "^2.48.1",
+    "bcryptjs": "^2.4.3",
+    "date-fns": "^4.1.0",
+    "framer-motion": "^12.40.0",
+    "lucide-react": "^0.468.0",
+    "next": "^16.2.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "recharts": "^2.15.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.17.0",
+    "eslint-config-next": "^15.1.3"
   }
 }

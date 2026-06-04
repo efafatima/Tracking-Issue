@@ -1,0 +1,299 @@
+Project dekh kar DFD ka actual breakdown ye banega. Is system ka naam **Student Issue Tracker / University Complaint Management System** hai, Next.js frontend + API backend + Supabase database/storage/auth use ho raha hai.
+
+**DFD Level 0**
+Level 0 mein poora project **1 single process** hota hai:
+
+**Process 0: Student Issue Tracker System**
+
+**External Entities:**
+1. **Student**
+   Complaint submit karta hai, edit karta hai, status track karta hai, rating/feedback deta hai.
+2. **HOD**
+   Academic aur Behavior-related complaints review karta hai, accept/reject karta hai, faculty ko assign karta hai.
+3. **DSA**
+   Administrative, Facilities, Other complaints review karta hai, assign karta hai, resolved complaint close karta hai.
+4. **Faculty Member**
+   Assigned complaint dekhta hai, student se contact kar sakta hai, evidence upload karta hai, complaint resolved mark karta hai.
+5. **Supervisor**
+   Departments, HOD, DSA, faculty, analytics, activity logs, reports aur overall system monitor karta hai.
+6. **Email/Notification Service**
+   Complaint submit, assign, reject, resolve, close, comment waghera par notifications/email bhejta hai.
+7. **Supabase Auth/Database/Storage**
+   Login/authentication, users, complaints, attachments, notifications, logs store karta hai.
+
+**Level 0 Main Data Flows:**
+- Student -> System: registration, login, complaint details, attachments, feedback
+- System -> Student: complaint status, notifications, comments, final result
+- HOD/DSA -> System: review decision, assignment, reject/accept
+- System -> HOD/DSA: routed complaints, complaint details, faculty list
+- Faculty -> System: resolution update, evidence attachment, comments
+- System -> Faculty: assigned complaints, student contact info
+- Supervisor -> System: department/user management, analytics request
+- System -> Supervisor: reports, activity logs, department history
+- System <-> Supabase: profiles, complaints, departments, logs, files, notifications
+- System -> Email/Notification Service: alert messages
+
+**DFD Level 1**
+Level 1 mein is project ke liye best breakdown **8 processes** ka hai.
+
+**1.0 User Authentication & Profile Management**
+Roles involved: Student, Faculty Member, HOD, DSA, Supervisor
+
+Input:
+- Login credentials
+- Registration data
+- Profile update data
+
+Process:
+- Student registration hoti hai.
+- Supabase Auth mein user create hota hai.
+- `profiles` table mein role, username, email, department save hota hai.
+- Login ke baad current user profile fetch hoti hai.
+
+Data Stores:
+- `auth.users`
+- `profiles`
+- `departments`
+
+Output:
+- Authenticated session
+- User profile with role
+- Dashboard access based on role
+
+**2.0 Complaint Submission & AI Suggestion**
+Role involved: Student
+
+Input:
+- Complaint title
+- Description
+- Category
+- Priority
+- Anonymous option
+- Attachments
+
+Process:
+- Student complaint form fill karta hai.
+- System description se suggested category aur priority nikalta hai.
+- Duplicate/similarity score bhi calculate hota hai.
+- Complaint `Submitted` status ke saath save hoti hai.
+- Attachments Supabase Storage mein upload hoti hain.
+
+Data Stores:
+- `complaints`
+- `complaint_attachments`
+- `activity_logs`
+- `notifications`
+- Supabase Storage bucket: `complaint-attachments`
+
+Output:
+- Complaint ID
+- Submitted complaint record
+- Student notification
+- Email alert
+
+**3.0 Complaint Routing**
+Roles involved: System, HOD, DSA
+
+Input:
+- Complaint category
+- Student department
+- Category route rules
+
+Process:
+- System category ke basis par complaint route karta hai.
+- Academic -> HOD
+- Behavior-related -> HOD
+- Administrative -> DSA
+- Facilities -> DSA
+- Other -> DSA
+
+Data Stores:
+- `category_routes`
+- `complaints`
+- `departments`
+
+Output:
+- Complaint ka `routed_to_role` set hota hai: HOD ya DSA
+- HOD/DSA dashboard mein complaint visible hoti hai
+
+**4.0 Complaint Review**
+Roles involved: HOD, DSA
+
+Input:
+- Routed complaint
+- Review action: accept/reject
+
+Process:
+- HOD/DSA complaint details read karta hai.
+- Agar complaint valid hai to accept karta hai.
+- Agar invalid hai to reject karta hai.
+- Reject hone par complaint status `Rejected` ho jata hai.
+- Accept hone par complaint assignment ke liye ready hoti hai.
+
+Data Stores:
+- `complaints`
+- `activity_logs`
+- `notifications`
+
+Output:
+- Accepted complaint
+- Rejected complaint
+- Student notification
+- Email notification
+
+**5.0 Faculty Assignment**
+Roles involved: HOD, DSA, Supervisor, Faculty Member
+
+Input:
+- Complaint ID
+- Faculty member ID
+- Optional deadline
+
+Process:
+- HOD/DSA/Supervisor faculty select karta hai.
+- System check karta hai faculty valid hai aur department match karta hai.
+- Complaint faculty ko assign hoti hai.
+- Status `In Progress` ho jata hai.
+
+Data Stores:
+- `complaints`
+- `profiles`
+- `activity_logs`
+- `notifications`
+
+Output:
+- Assigned complaint
+- Faculty notification
+- Student notification
+- Assignment email
+
+**6.0 Complaint Resolution**
+Role involved: Faculty Member
+
+Input:
+- Assigned complaint
+- Resolution action
+- Evidence attachment optional
+
+Process:
+- Faculty assigned complaint open karta hai.
+- Student contact email dekh sakta hai.
+- Evidence upload kar sakta hai.
+- Complaint ko `Resolved` mark karta hai.
+- Sirf assigned faculty hi status update kar sakti hai.
+
+Data Stores:
+- `complaints`
+- `complaint_attachments`
+- `activity_logs`
+- `notifications`
+
+Output:
+- Complaint status `Resolved`
+- Student notification
+- DSA/Supervisor review ke liye alert
+
+**7.0 Final Closure & Feedback**
+Roles involved: DSA, Supervisor, Student
+
+Input:
+- Resolved complaint
+- Close action
+- Student rating/feedback
+
+Process:
+- DSA ya Supervisor resolved complaint close karta hai.
+- Status `Closed` ho jata hai.
+- Student resolved/closed complaint ko 1 se 5 rating de sakta hai.
+- Feedback complaint record mein save hota hai.
+
+Data Stores:
+- `complaints`
+- `activity_logs`
+- `notifications`
+
+Output:
+- Closed complaint
+- Rating
+- Feedback
+- Final notification
+
+**8.0 Monitoring, Analytics & Administration**
+Role involved: Supervisor mainly, kuch analytics role-wise scoped hain
+
+Input:
+- Analytics request
+- Department/user creation
+- Activity/report request
+
+Process:
+- Supervisor departments create/manage karta hai.
+- Supervisor HOD, DSA, faculty accounts create karta hai.
+- DSA bhi faculty create kar sakta hai apne department mein.
+- System complaints ka status, category, priority, department wise analytics generate karta hai.
+- Activity logs aur department history show hoti hai.
+
+Data Stores:
+- `departments`
+- `profiles`
+- `complaints`
+- `activity_logs`
+- `notifications`
+
+Output:
+- Analytics dashboard
+- Department insights
+- Activity feed
+- Staff/user records
+
+**Roles Ka Exact Kaam**
+**Student:**
+- Register/login
+- Complaint submit
+- AI suggestion le sakta hai
+- Attachment upload
+- Submitted complaint one-time edit kar sakta hai
+- Status track karta hai
+- Resolved/Closed complaint rate karta hai
+
+**HOD:**
+- Sirf apne department ki HOD-routed complaints dekhta hai
+- Academic aur Behavior-related complaints handle karta hai
+- Accept/reject karta hai
+- Faculty ko assign karta hai
+- Faculty create karne ka quick option frontend mein hai
+
+**DSA:**
+- Apne department ki DSA-routed complaints dekhta hai
+- Administrative, Facilities, Other complaints handle karta hai
+- Accept/reject karta hai
+- Faculty ko assign karta hai
+- Resolved complaints close karta hai
+- Faculty create kar sakta hai
+
+**Faculty Member:**
+- Sirf assigned complaints dekhta hai
+- Complaint details aur student email dekh sakta hai
+- Evidence upload karta hai
+- Complaint `In Progress` se `Resolved` karta hai
+
+**Supervisor:**
+- Sab complaints dekh sakta hai
+- Departments manage karta hai
+- HOD/DSA/Faculty users create karta hai
+- Assignment kar sakta hai
+- Resolved complaints close kar sakta hai
+- Analytics, activity logs, department history monitor karta hai
+
+**Main Data Stores**
+1. `profiles` - users aur roles
+2. `departments` - departments, HOD, DSA
+3. `complaints` - main complaint data
+4. `complaint_attachments` - uploaded files metadata
+5. `complaint_comments` - comments
+6. `notifications` - user notifications
+7. `category_routes` - category se HOD/DSA routing
+8. `activity_logs` - every important action ka audit trail
+9. Supabase Storage - actual attachment files
+
+Agar tum diagram draw kar rahe ho to Level 0 mein center mein **Student Issue Tracker System** banao, aur around Student, HOD, DSA, Faculty, Supervisor, Supabase, Email/Notification Service. Level 1 mein center system ko 8 processes mein break kar do: Authentication, Submission, Routing, Review, Assignment, Resolution, Closure/Feedback, Analytics/Admin.
